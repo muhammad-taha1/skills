@@ -3,12 +3,9 @@ name: discover
 description: >
   Requirements and brainstorming interview — run BEFORE technical design or planning.
   Use when starting a new feature, project, or significant change where the problem or
-  outcomes aren't yet crisp. Produces a brief that feeds directly into planning.
-when_to_use: >
-  Trigger on: vague feature ideas, "I want to build", "we should add", "help me think
-  through", or any situation where the *what/why* isn't fully pinned before jumping to *how*.
-disable-model-invocation: false
-argument-hint: "[feature or idea to explore]"
+  outcomes aren't yet crisp. Produces a brief that feeds directly into planning. Trigger on:
+  vague feature ideas, "I want to build", "we should add", "help me think through", or any
+  situation where the *what/why* isn't fully pinned before jumping to *how*.
 ---
 
 Conduct a focused requirements interview. Goal: produce a brief that separates the
@@ -43,7 +40,8 @@ Emit a compact brief in this format. Keep it short — one crisp sentence or phr
 **Assumptions to validate:** <any key unknowns>
 ```
 
-This brief feeds directly into technical planning (plan mode, architecture, etc.).
-The brief is the deliverable — not a solution, not a proposal, not a design.
+This brief feeds directly into technical planning — the `research-plan-build` skill picks it
+up as its input. The brief is the deliverable — not a solution, not a proposal, not a design.
 
-If `$ARGUMENTS` is provided, treat it as the starting idea and begin the interview there.
+If an initial idea was provided when this skill was invoked, treat it as the starting point
+and begin the interview there.

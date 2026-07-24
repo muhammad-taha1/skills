@@ -3,12 +3,9 @@ name: domain-modeling
 description: >
   Domain-Driven Design guidance, tiered by complexity. Apply when modeling a domain, designing
   backend architecture, defining boundaries between systems, or naming concepts. Strategic
-  patterns apply everywhere; tactical patterns are earned, not imposed.
-when_to_use: >
-  Trigger on: "how should I model", "what's the aggregate", "bounded context", "domain service",
-  "ubiquitous language", "naming this concept", designing business rules, or structuring a
-  domain layer.
-user-invocable: true
+  patterns apply everywhere; tactical patterns are earned, not imposed. Trigger on: "how should
+  I model", "what's the aggregate", "bounded context", "domain service", "ubiquitous language",
+  "naming this concept", designing business rules, or structuring a domain layer.
 ---
 
 Two tiers. The first is always active. The second is earned.

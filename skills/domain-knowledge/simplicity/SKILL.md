@@ -3,11 +3,9 @@ name: simplicity
 description: >
   Code structure and design philosophy. Apply when making design decisions, proposing
   implementations, refactoring, or reviewing diffs. Covers module depth, abstraction layers,
-  consistency, and sequencing discipline.
-when_to_use: >
-  Trigger on: architecture discussions, "how should I structure", "is this abstraction right",
-  "should I extract", "refactor", code review, designing a new module or interface.
-user-invocable: true
+  consistency, and sequencing discipline. Trigger on: architecture discussions, "how should I
+  structure", "is this abstraction right", "should I extract", "refactor", code review,
+  designing a new module or interface.
 ---
 
 Apply these as design criteria, not checklists. Silently.

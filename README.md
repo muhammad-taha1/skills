@@ -1,44 +1,62 @@
-# craft
+# skills
 
-A Claude Code plugin that encodes a coherent software engineering philosophy into your workflow.
+A personal catalog of general-purpose agent skills, installable with
+[`npx skills`](https://github.com/vercel-labs/skills) into Claude Code, Cursor, OpenCode, and
+any other agent the CLI supports.
 
 ## Install
 
-**Claude Code plugin marketplace:**
-
-```
-/plugin marketplace add thisistaha/craft
-/plugin install craft@craft
-```
-
-Then `/reload-plugins` if needed. Skills are namespaced: `/craft:principles`, `/craft:discover`, etc.
-
-**Any agent via [`npx skills`](https://github.com/vercel-labs/skills):**
-
 ```bash
-# all five skills
-npx skills add thisistaha/craft
+# everything
+npx skills add muhammad-taha1/skills
 
 # a single skill
-npx skills add thisistaha/craft --skill principles
+npx skills add muhammad-taha1/skills --skill principles
 
-# globally, to Claude Code only
-npx skills add thisistaha/craft -a claude-code -g
+# globally, for one agent
+npx skills add muhammad-taha1/skills -a claude-code -g
+
+# local testing from a checkout (repo root; add --copy if symlinks are unavailable)
+npx skills add ./ -g -a claude-code
 ```
 
-## What's inside
+## Catalog
 
-Five skills — see [`plugins/craft/README.md`](plugins/craft/README.md) for details.
+Skills are organized as `skills/<category>/<name>/SKILL.md`.
 
-## Development
+### domain-knowledge
+Adds knowledge and operating defaults to an agent.
 
-```bash
-# Test locally without installing
-claude --plugin-dir ./plugins/craft
+| Skill | What it does |
+| --- | --- |
+| `principles` | Core engineering operating defaults — minimal change, permanent fix over point fix, complexity in code not prompts. |
+| `simplicity` | Design philosophy — deep modules, abstraction layers, Rule of Three, work → right → fast. |
+| `domain-modeling` | DDD guidance tiered by complexity — strategic always, tactical when earned. |
+| `testing` | TDD at the interface seam — test what a module promises, mock only true boundaries. |
 
-# Validate before pushing
-claude plugin validate
-```
+### workflow
+How I run coding agents day to day.
+
+| Skill | What it does |
+| --- | --- |
+| `discover` | Requirements interview before any design — produces a brief. |
+| `research-plan-build` | Discover → read-only research → explanation-first plan (markdown source of truth + commentable HTML view) → feedback loop → build. |
+| `agent-repo-optimizer` | Audit a repo's agent docs/skills for drift, duplication, and token cost; tiered improvement plan. |
+
+### productivity
+Non-coding tasks I do regularly.
+
+| Skill | What it does |
+| --- | --- |
+| `excel-analysis` | Safe openpyxl workbook analysis and editing — formula-preserving, taxonomy-respecting. |
+
+### executable
+One-off skills, invoked manually for a specific task.
+
+| Skill | What it does |
+| --- | --- |
+| `screenshot-page` | Desktop + mobile headless-browser captures of a URL for visual review. |
+| `skill-feedback` | Fold a session correction into the skill that should have prevented it. |
 
 ## License
 

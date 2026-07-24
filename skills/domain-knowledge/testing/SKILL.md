@@ -3,11 +3,9 @@ name: testing
 description: >
   TDD and testing discipline. Apply when writing tests, deciding what to cover, or reviewing
   test structure. Centers on testing at the interface seam — what a module promises — rather
-  than testing every internal method or dependency.
-when_to_use: >
-  Trigger on: "write tests for", "what should I test", "test coverage", "unit test",
-  "integration test", "mock", "should I test this", or any discussion of test strategy.
-user-invocable: true
+  than testing every internal method or dependency. Trigger on: "write tests for", "what should
+  I test", "test coverage", "unit test", "integration test", "mock", "should I test this", or
+  any discussion of test strategy.
 ---
 
 Apply these silently when writing or reviewing tests.

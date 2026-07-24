@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><!-- PLAN_TITLE --></title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1a1a; --muted: #6b7280; --accent: #2563eb;
+    --card: #f6f7f9; --border: #e5e7eb; --comment-bg: #fff8e1; --comment-border: #f0c94a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111418; --fg: #e5e7eb; --muted: #9ca3af; --accent: #60a5fa;
+      --card: #1a1f26; --border: #2b323b; --comment-bg: #2b2410; --comment-border: #8a6d1a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.65 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  }
+  main { max-width: 72ch; margin: 0 auto; padding: 2rem 1.25rem 6rem; }
+  h1 { font-size: 1.9rem; line-height: 1.25; }
+  h2 { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  code { background: var(--card); padding: .1em .35em; border-radius: 4px; font-size: .9em; }
+  pre { background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+        padding: 1rem; overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
+  th, td { border: 1px solid var(--border); padding: .4rem .6rem; text-align: left; }
+  blockquote { margin: 0; padding: .25rem 1rem; border-left: 3px solid var(--accent);
+               color: var(--muted); }
+  nav#toc { background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+            padding: .75rem 1.25rem; font-size: .92rem; }
+  nav#toc a { color: var(--accent); text-decoration: none; display: block; padding: .1rem 0; }
+
+  /* commentable blocks */
+  .blk { position: relative; border-radius: 6px; }
+  .blk:hover { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+  .blk .cbtn {
+    position: absolute; right: 100%; top: 0; margin-right: .5rem; opacity: 0;
+    border: 1px solid var(--border); background: var(--card); color: var(--fg);
+    border-radius: 6px; cursor: pointer; font-size: .85rem; padding: .1rem .4rem;
+  }
+  .blk:hover .cbtn, .blk .cbtn:focus { opacity: 1; }
+  @media (max-width: 900px) { .blk .cbtn { position: static; opacity: .6; margin: 0 0 .25rem; } }
+
+  .comment-card {
+    background: var(--comment-bg); border: 1px solid var(--comment-border);
+    border-radius: 8px; padding: .5rem .75rem; margin: .4rem 0 .8rem; font-size: .92rem;
+  }
+  .comment-card .meta { color: var(--muted); font-size: .8rem; display: flex; gap: .75rem; }
+  .comment-card .meta button { background: none; border: none; color: var(--accent);
+                               cursor: pointer; padding: 0; font-size: .8rem; }
+  .comment-editor textarea {
+    width: 100%; min-height: 4rem; font: inherit; font-size: .92rem;
+    background: var(--bg); color: var(--fg); border: 1px solid var(--comment-border);
+    border-radius: 6px; padding: .5rem;
+  }
+  .comment-editor .row { display: flex; gap: .5rem; margin-top: .3rem; }
+  .comment-editor button { font: inherit; font-size: .85rem; padding: .2rem .7rem;
+    border-radius: 6px; border: 1px solid var(--border); background: var(--card);
+    color: var(--fg); cursor: pointer; }
+  .comment-editor button.primary { background: var(--accent); color: #fff; border: none; }
+
+  #exportbar {
+    position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: .6rem;
+    justify-content: center; align-items: center; padding: .6rem;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(6px); border-top: 1px solid var(--border);
+  }
+  #exportbar button { font: inherit; font-size: .9rem; padding: .35rem 1rem;
+    border-radius: 8px; border: 1px solid var(--border); background: var(--card);
+    color: var(--fg); cursor: pointer; }
+  #exportbar button.primary { background: var(--accent); color: #fff; border: none; }
+  #exportbar .count { color: var(--muted); font-size: .85rem; }
+  #toast { position: fixed; bottom: 4rem; left: 50%; transform: translateX(-50%);
+    background: var(--fg); color: var(--bg); padding: .4rem 1rem; border-radius: 8px;
+    font-size: .9rem; opacity: 0; transition: opacity .25s; pointer-events: none; }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<main>
+  <!--
+    CONTENT: render the plan markdown to HTML here.
+    Every top-level block (heading, paragraph, ul/ol, pre, table, blockquote) must be wrapped:
+      <div class="blk" data-md-line="N" data-section="Current H2 heading text">...block...</div>
+    where N = the LAST line number (1-based) of that block in the source .md file.
+    Give each h2 an id for the TOC. Build the TOC as: <nav id="toc">…links…</nav> after the h1.
+  -->
+  <!-- PLAN_CONTENT -->
+</main>
+
+<div id="exportbar">
+  <span class="count" id="ccount"></span>
+  <button class="primary" id="save-md">Save comments into .md</button>
+  <button id="copy-md">Copy as &gt;&gt; lines</button>
+  <button id="clear-all">Clear all</button>
+</div>
+<div id="toast"></div>
+
+<script>
+(() => {
+  // MD_FILENAME: set to the plan's markdown filename, e.g. "2026-07-23-my-plan.md"
+  const MD_FILENAME = /* MD_FILENAME */ "plan.md";
+  const KEY = "plan-comments:" + MD_FILENAME;
+
+  const load = () => JSON.parse(localStorage.getItem(KEY) || "[]");
+  const store = (c) => { localStorage.setItem(KEY, JSON.stringify(c)); refresh(); };
+  const toast = (msg) => { const t = document.getElementById("toast");
+    t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2200); };
+
+  function refresh() {
+    document.querySelectorAll(".comment-card").forEach(e => e.remove());
+    const comments = load();
+    document.getElementById("ccount").textContent =
+      comments.length ? comments.length + " comment" + (comments.length > 1 ? "s" : "") : "no comments yet";
+    for (const [i, c] of comments.entries()) {
+      const blk = document.querySelector(`.blk[data-md-line="${c.line}"]`);
+      if (!blk) continue;
+      const card = document.createElement("div");
+      card.className = "comment-card";
+      const text = document.createElement("div");
+      text.textContent = c.text;
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const edit = document.createElement("button"); edit.textContent = "edit";
+      edit.onclick = () => { const all = load(); openEditor(blk, all[i].text, (v) => {
+        if (v === null) return; all[i].text = v; store(all); }); };
+      const del = document.createElement("button"); del.textContent = "delete";
+      del.onclick = () => { const all = load(); all.splice(i, 1); store(all); };
+      meta.append("💬 your comment", edit, del);
+      card.append(text, meta);
+      blk.after(card);
+    }
+  }
+
+  function openEditor(blk, initial, done) {
+    const ed = document.createElement("div");
+    ed.className = "comment-card comment-editor";
+    ed.innerHTML = `<textarea></textarea>
+      <div class="row"><button class="primary">Save</button><button>Cancel</button></div>`;
+    const ta = ed.querySelector("textarea"); ta.value = initial || "";
+    const [save, cancel] = ed.querySelectorAll("button");
+    save.onclick = () => { const v = ta.value.trim(); ed.remove(); done(v || null); };
+    cancel.onclick = () => { ed.remove(); done(null); };
+    blk.after(ed); ta.focus();
+  }
+
+  // attach 💬 buttons
+  document.querySelectorAll(".blk").forEach(blk => {
+    const b = document.createElement("button");
+    b.className = "cbtn"; b.textContent = "💬"; b.title = "Add comment";
+    b.onclick = () => openEditor(blk, "", (v) => {
+      if (v === null) return;
+      const all = load();
+      all.push({ line: Number(blk.dataset.mdLine), section: blk.dataset.section || "", text: v });
+      store(all);
+    });
+    blk.prepend(b);
+  });
+
+  const asLines = (c) => c.text.split("\n").map(l => ">> " + l).join("\n");
+
+  // Save directly into the .md via File System Access API (Chrome/Edge)
+  document.getElementById("save-md").onclick = async () => {
+    const comments = load();
+    if (!comments.length) return toast("No comments to save");
+    if (!window.showOpenFilePicker) return toast("Not supported here — use Copy instead");
+    try {
+      const [handle] = await window.showOpenFilePicker({
+        types: [{ description: "Plan markdown", accept: { "text/markdown": [".md"] } }],
+        suggestedName: MD_FILENAME,
+      });
+      const file = await handle.getFile();
+      const lines = (await file.text()).split("\n");
+      // insert bottom-up so earlier line numbers stay valid
+      for (const c of [...comments].sort((a, b) => b.line - a.line)) {
+        const at = Math.min(c.line, lines.length); // after the block's last source line
+        lines.splice(at, 0, asLines(c));
+      }
+      const w = await handle.createWritable();
+      await w.write(lines.join("\n")); await w.close();
+      localStorage.removeItem(KEY); refresh();
+      toast("Comments written into " + handle.name);
+    } catch (e) { if (e.name !== "AbortError") toast("Save failed: " + e.message); }
+  };
+
+  // Clipboard fallback
+  document.getElementById("copy-md").onclick = async () => {
+    const comments = load();
+    if (!comments.length) return toast("No comments to copy");
+    const out = comments.map(c => `>> (${c.section || "general"}) ${c.text}`).join("\n");
+    await navigator.clipboard.writeText(out);
+    toast("Copied — paste to the agent, then Clear all");
+  };
+
+  document.getElementById("clear-all").onclick = () => {
+    if (confirm("Delete all comments stored for this plan?")) { localStorage.removeItem(KEY); refresh(); }
+  };
+
+  refresh();
+})();
+</script>
+</body>
+</html>
