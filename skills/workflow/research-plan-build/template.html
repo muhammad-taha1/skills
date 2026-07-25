@@ -96,6 +96,7 @@
 <div id="exportbar">
   <span class="count" id="ccount"></span>
   <button class="primary" id="save-md">Save comments into .md</button>
+  <button class="primary" id="approve" hidden>Approve plan ✓</button>
   <button id="copy-md">Copy as &gt;&gt; lines</button>
   <button id="clear-all">Clear all</button>
 </div>
@@ -164,29 +165,59 @@
 
   const asLines = (c) => c.text.split("\n").map(l => ">> " + l).join("\n");
 
-  // Save directly into the .md via File System Access API (Chrome/Edge)
-  document.getElementById("save-md").onclick = async () => {
-    const comments = load();
-    if (!comments.length) return toast("No comments to save");
-    if (!window.showOpenFilePicker) return toast("Not supported here — use Copy instead");
-    try {
-      const [handle] = await window.showOpenFilePicker({
-        types: [{ description: "Plan markdown", accept: { "text/markdown": [".md"] } }],
-        suggestedName: MD_FILENAME,
-      });
-      const file = await handle.getFile();
-      const lines = (await file.text()).split("\n");
-      // insert bottom-up so earlier line numbers stay valid
-      for (const c of [...comments].sort((a, b) => b.line - a.line)) {
-        const at = Math.min(c.line, lines.length); // after the block's last source line
-        lines.splice(at, 0, asLines(c));
-      }
-      const w = await handle.createWritable();
-      await w.write(lines.join("\n")); await w.close();
-      localStorage.removeItem(KEY); refresh();
-      toast("Comments written into " + handle.name);
-    } catch (e) { if (e.name !== "AbortError") toast("Save failed: " + e.message); }
+  // Served by serve-plan.mjs? Then the server writes the .md and notifies the agent.
+  const SERVED = location.protocol === "http:" || location.protocol === "https:";
+  const saveBtn = document.getElementById("save-md");
+  const approveBtn = document.getElementById("approve");
+  const finish = (msg) => {
+    localStorage.removeItem(KEY); refresh();
+    [saveBtn, approveBtn, document.getElementById("copy-md"), document.getElementById("clear-all")]
+      .forEach((b) => { b.disabled = true; });
+    toast(msg);
   };
+
+  if (SERVED) {
+    saveBtn.textContent = "Send comments to agent";
+    approveBtn.hidden = false;
+    saveBtn.onclick = async () => {
+      const comments = load();
+      if (!comments.length) return toast("No comments to send");
+      const r = await fetch("/comments", { method: "POST",
+        headers: { "content-type": "application/json" }, body: JSON.stringify({ comments }) });
+      if (r.ok) finish("Sent — the agent is revising. You can close this tab.");
+      else toast("Send failed: " + await r.text());
+    };
+    approveBtn.onclick = async () => {
+      if (load().length && !confirm("You have unsent comments — approve anyway?")) return;
+      const r = await fetch("/approve", { method: "POST" });
+      if (r.ok) finish("Approved — the agent will start building. You can close this tab.");
+      else toast("Approve failed: " + await r.text());
+    };
+  } else {
+    // static file fallback: write into the .md via File System Access API (Chrome/Edge)
+    saveBtn.onclick = async () => {
+      const comments = load();
+      if (!comments.length) return toast("No comments to save");
+      if (!window.showOpenFilePicker) return toast("Not supported here — use Copy instead");
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          types: [{ description: "Plan markdown", accept: { "text/markdown": [".md"] } }],
+          suggestedName: MD_FILENAME,
+        });
+        const file = await handle.getFile();
+        const lines = (await file.text()).split("\n");
+        // insert bottom-up so earlier line numbers stay valid
+        for (const c of [...comments].sort((a, b) => b.line - a.line)) {
+          const at = Math.min(c.line, lines.length); // after the block's last source line
+          lines.splice(at, 0, asLines(c));
+        }
+        const w = await handle.createWritable();
+        await w.write(lines.join("\n")); await w.close();
+        localStorage.removeItem(KEY); refresh();
+        toast("Comments written into " + handle.name);
+      } catch (e) { if (e.name !== "AbortError") toast("Save failed: " + e.message); }
+    };
+  }
 
   // Clipboard fallback
   document.getElementById("copy-md").onclick = async () => {

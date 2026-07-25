@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><!-- DECK_TITLE --></title>
+<style>
+  :root {
+    /* light surfaces */
+    --bg: #f6f7f9;
+    --bg-raise: #ffffff;
+    --fg: #171a21;
+    --muted: #5a6072;
+    --faint: #9aa0b0;
+    --border: rgba(23, 26, 33, 0.12);
+    --accent: #5646e0;
+    /* dark islands: terminals, code, commands keep a real-terminal look */
+    --ink-bg: #12141c;
+    --ink-fg: #e8eaf2;
+    --ink-muted: #9ba1b5;
+    --ink-border: rgba(255, 255, 255, 0.1);
+    --accent-on-dark: color-mix(in srgb, var(--accent) 55%, white);
+    --shadow: 0 12px 40px rgba(23, 26, 33, 0.1);
+    --mono: "Cascadia Code", "SF Mono", "JetBrains Mono", Consolas, "Roboto Mono", monospace;
+    --sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  /* ---------- stage ---------- */
+  .deck { position: relative; height: 100%; }
+  .slide {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(1.5rem, 6vw, 7rem);
+    padding-bottom: clamp(4rem, 12vh, 8rem);
+  }
+  .slide.active { display: flex; }
+
+  /* staggered entrance: every direct reveal child rises in */
+  .reveal { opacity: 0; transform: translateY(16px); }
+  .active .reveal {
+    animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(var(--i, 0) * 130ms);
+  }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  /* ---------- shared type ---------- */
+  .kicker {
+    font-family: var(--mono);
+    font-size: clamp(0.7rem, 1.4vw, 0.85rem);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.4rem;
+  }
+  .kicker::before { content: "// "; color: var(--faint); }
+  .display {
+    font-weight: 850;
+    letter-spacing: -0.03em;
+    line-height: 1.02;
+    text-wrap: balance;
+  }
+
+  /* ---------- title slide ---------- */
+  .s-title .display { font-size: clamp(2.6rem, 9vw, 7rem); }
+  .s-title .subtitle {
+    margin-top: 1.6rem;
+    font-size: clamp(1.05rem, 2.6vw, 1.7rem);
+    color: var(--muted);
+    max-width: 26em;
+    line-height: 1.4;
+  }
+
+  /* ---------- problem slide ---------- */
+  .s-problem .display {
+    font-size: clamp(2rem, 6.5vw, 4.8rem);
+    max-width: 15em;
+  }
+  .s-problem .display { border-left: 4px solid var(--accent); padding-left: clamp(1rem, 3vw, 2rem); }
+  .s-problem .support {
+    margin-top: 1.5rem;
+    padding-left: calc(clamp(1rem, 3vw, 2rem) + 4px);
+    font-size: clamp(1rem, 2.2vw, 1.4rem);
+    color: var(--muted);
+    max-width: 30em;
+    line-height: 1.5;
+  }
+
+  /* ---------- points slide ---------- */
+  .s-points .heading { font-size: clamp(1.6rem, 4.5vw, 3rem); margin-bottom: 2.2rem; }
+  .cards { display: grid; gap: 0.9rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); max-width: 68rem; }
+  .card {
+    background: var(--bg-raise);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.4rem 1.5rem;
+    box-shadow: 0 2px 10px rgba(23, 26, 33, 0.05);
+  }
+  .card .label {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.6rem;
+  }
+  .card .text { font-size: clamp(0.95rem, 1.8vw, 1.15rem); line-height: 1.45; color: var(--fg); }
+
+  /* ---------- quotes slide (signature: prompt lines type themselves) ---------- */
+  .s-quotes .heading { font-size: clamp(1.6rem, 4.5vw, 3rem); margin-bottom: 2.2rem; }
+  .prompt-line {
+    font-family: var(--mono);
+    font-size: clamp(1.05rem, 3vw, 1.9rem);
+    line-height: 2.1;
+    color: var(--fg);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .prompt-line::before { content: "\203A"; color: var(--accent); margin-right: 0.55em; }
+  .prompt-line .typed { display: inline-block; white-space: pre; }
+  .active .prompt-line .typed { width: 0; overflow: hidden; vertical-align: bottom;
+    animation: typeon 0.7s steps(24) forwards;
+    animation-delay: calc(var(--i, 0) * 450ms);
+  }
+  @keyframes typeon { to { width: var(--w, 100%); } }
+  .prompt-line:last-child::after {
+    content: "";
+    display: inline-block; width: 0.55em; height: 1.15em;
+    background: var(--accent); vertical-align: text-bottom; margin-left: 0.15em;
+    animation: blink 1.05s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ---------- screen slide (real captured UI in a browser frame) ---------- */
+  .s-screen .heading { font-size: clamp(1.6rem, 4.5vw, 3rem); margin-bottom: 1.8rem; }
+  .browser {
+    background: var(--bg-raise);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    max-width: min(66rem, 100%);
+  }
+  .browser-bar {
+    display: flex; align-items: center; gap: 0.9rem;
+    padding: 0.6rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .browser-dots { display: flex; gap: 6px; }
+  .browser-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--border); }
+  .browser-url {
+    font-family: var(--mono); font-size: 0.75rem;
+    color: var(--muted); background: var(--bg);
+    border-radius: 6px; padding: 0.35em 1em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 34rem;
+  }
+  .browser img { display: block; width: 100%; height: auto; }
+  .s-screen .caption { margin-top: 1.1rem; color: var(--muted); font-size: clamp(0.9rem, 1.8vw, 1.1rem); }
+  /* keep tall captures from pushing the slide off-viewport */
+  .s-screen .browser { max-height: 62vh; }
+  .s-screen .browser .browser-viewport { max-height: calc(62vh - 2.4rem); overflow: hidden; }
+
+  /* ---------- session slide (the skill in action) ---------- */
+  .s-session .heading { font-size: clamp(1.6rem, 4.5vw, 3rem); margin-bottom: 2rem; }
+  .terminal {
+    background: var(--ink-bg);
+    border-radius: 12px;
+    max-width: 62rem;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .term-bar {
+    font-family: var(--mono); font-size: 0.72rem;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-muted);
+    padding: 0.7rem 1.4rem;
+    border-bottom: 1px solid var(--ink-border);
+  }
+  .term-body { padding: clamp(1rem, 2.5vw, 1.8rem) clamp(1.2rem, 3vw, 2rem); }
+  .term-line {
+    display: flex; gap: 1em; align-items: baseline;
+    font-family: var(--mono);
+    font-size: clamp(0.85rem, 1.9vw, 1.1rem);
+    line-height: 1.65;
+    padding: 0.3em 0;
+  }
+  .term-line .tag {
+    flex: 0 0 6ch;
+    white-space: nowrap;
+    font-size: 0.72em; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--faint);
+  }
+  .term-line .tag { color: var(--ink-muted); opacity: 0.7; }
+  .term-line.who-you .tag { color: var(--accent-on-dark); opacity: 1; }
+  .term-line.who-you .text { color: var(--ink-fg); font-weight: 600; }
+  .term-line.who-agent .text { color: var(--ink-muted); }
+  .term-line.who-result .tag { color: var(--accent-on-dark); opacity: 1; }
+  .term-line.who-result .text { color: var(--ink-fg); }
+  .term-line.who-result { border-top: 1px dashed var(--ink-border); margin-top: 0.4em; padding-top: 0.7em; }
+
+  /* ---------- code slide ---------- */
+  .s-code .heading { font-size: clamp(1.6rem, 4.5vw, 3rem); margin-bottom: 2rem; }
+  .codeblock {
+    background: var(--ink-bg);
+    border-radius: 12px;
+    padding: clamp(1.2rem, 3vw, 2rem);
+    max-width: 60rem;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  .codeblock pre {
+    font-family: var(--mono);
+    font-size: clamp(0.9rem, 2.2vw, 1.35rem);
+    line-height: 1.6;
+    color: var(--ink-fg);
+  }
+  .s-code .caption { margin-top: 1.2rem; color: var(--muted); font-size: clamp(0.9rem, 1.8vw, 1.15rem); }
+
+  /* ---------- closing slide ---------- */
+  .s-closing .display { font-size: clamp(2.4rem, 8vw, 6rem); }
+  .command {
+    display: inline-block;
+    margin-top: 2.2rem;
+    font-family: var(--mono);
+    font-size: clamp(0.85rem, 2vw, 1.25rem);
+    color: var(--ink-fg);
+    background: var(--ink-bg);
+    border-radius: 999px;
+    padding: 0.8em 1.5em;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    box-shadow: var(--shadow);
+  }
+  .command::before { content: "$ "; color: var(--accent-on-dark); }
+  .s-closing .footnote { margin-top: 1.6rem; color: var(--muted); font-family: var(--mono); font-size: 0.85rem; letter-spacing: 0.08em; }
+
+  /* ---------- chrome ---------- */
+  .progressbar {
+    position: fixed; top: 0; left: 0; height: 2px; width: 0;
+    background: var(--accent);
+    transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 3;
+  }
+  .chrome {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.1rem clamp(1.5rem, 6vw, 7rem);
+    font-family: var(--mono); font-size: 0.8rem; color: var(--faint);
+    z-index: 3;
+  }
+  .chrome .counter { letter-spacing: 0.15em; }
+  .chrome button {
+    all: unset; cursor: pointer; color: var(--faint);
+    padding: 0.3em 0.7em; border-radius: 6px; margin-left: 0.6em;
+    font-family: var(--mono); font-size: 0.8rem;
+  }
+  .chrome button:hover { color: var(--fg); background: var(--bg-raise); }
+  .chrome button:focus-visible { outline: 2px solid var(--accent); }
+  /* self-play: a visible, labeled pill so viewers notice they can sit back */
+  .chrome #play {
+    color: var(--accent);
+    border: 1px solid var(--border);
+    background: var(--bg-raise);
+    padding: 0.4em 0.9em;
+    letter-spacing: 0.04em;
+    box-shadow: 0 1px 4px rgba(23, 26, 33, 0.06);
+  }
+  .chrome #play:hover { color: var(--fg); border-color: var(--accent); }
+  .chrome #play.playing { color: var(--fg); }
+  .chrome .right { display: flex; align-items: center; }
+  .footer-note { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40%; }
+
+  .hint {
+    position: fixed; bottom: 4rem; left: 50%; transform: translateX(-50%);
+    font-family: var(--mono); font-size: 0.75rem; color: var(--faint);
+    letter-spacing: 0.12em; z-index: 3;
+    animation: fadehint 1s ease 4s forwards;
+  }
+  @keyframes fadehint { to { opacity: 0; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .active .reveal { animation: none; opacity: 1; transform: none; }
+    .active .prompt-line .typed { animation: none; width: auto; }
+    .prompt-line:last-child::after { animation: none; }
+    .progressbar { transition: none; }
+    .hint { animation: none; opacity: 0; }
+  }
+</style>
+</head>
+<body>
+  <div class="progressbar" id="bar"></div>
+  <main class="deck" id="deck" aria-live="polite"></main>
+  <div class="hint" id="hint">&#8592; &#8594; or click to advance</div>
+  <div class="chrome">
+    <div class="footer-note" id="footer"></div>
+    <div class="right">
+      <span class="counter" id="counter"></span>
+      <button id="play" aria-label="Toggle self-play">&#9654;&nbsp;Self-play</button>
+    </div>
+  </div>
+<script>
+(function () {
+  "use strict";
+  var DECK = /* DECK_DATA */ null;
+  if (!DECK) { document.body.textContent = "No deck data injected. Build with build-deck.mjs."; return; }
+
+  var meta = DECK.meta || {};
+  var slides = DECK.slides || [];
+  if (meta.accent) document.documentElement.style.setProperty("--accent", meta.accent);
+  document.title = meta.title || "demo";
+
+  var deckEl = document.getElementById("deck");
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // -- element helpers (textContent only: content is data, never markup) --
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  var revealIndex;
+  function reveal(node) { node.classList.add("reveal"); node.style.setProperty("--i", revealIndex++); return node; }
+
+  var builders = {
+    title: function (s, root) {
+      if (s.kicker) root.appendChild(reveal(el("div", "kicker", s.kicker)));
+      root.appendChild(reveal(el("h1", "display", s.title)));
+      root.appendChild(reveal(el("p", "subtitle", s.subtitle)));
+    },
+    problem: function (s, root) {
+      root.appendChild(reveal(el("h2", "display", s.statement)));
+      if (s.support) root.appendChild(reveal(el("p", "support", s.support)));
+    },
+    points: function (s, root) {
+      if (s.heading) root.appendChild(reveal(el("h2", "display heading", s.heading)));
+      var grid = el("div", "cards");
+      (s.points || []).forEach(function (p) {
+        var c = reveal(el("div", "card"));
+        c.appendChild(el("div", "label", p.label));
+        c.appendChild(el("div", "text", p.text));
+        grid.appendChild(c);
+      });
+      root.appendChild(grid);
+    },
+    quotes: function (s, root) {
+      if (s.heading) root.appendChild(reveal(el("h2", "display heading", s.heading)));
+      (s.quotes || []).forEach(function (q) {
+        var line = reveal(el("div", "prompt-line"));
+        var typed = el("span", "typed", "“" + q + "”");
+        typed.style.setProperty("--w", (q.length + 2) + "ch");
+        line.appendChild(typed);
+        root.appendChild(line);
+      });
+    },
+    screen: function (s, root) {
+      if (s.heading) root.appendChild(reveal(el("h2", "display heading", s.heading)));
+      var win = reveal(el("div", "browser"));
+      var bar = el("div", "browser-bar");
+      var dots = el("div", "browser-dots");
+      for (var d = 0; d < 3; d++) dots.appendChild(el("i"));
+      bar.appendChild(dots);
+      if (s.url) bar.appendChild(el("div", "browser-url", s.url));
+      win.appendChild(bar);
+      var vp = el("div", "browser-viewport");
+      var img = el("img");
+      img.src = s.image;
+      img.alt = s.caption || s.heading || "captured screen";
+      vp.appendChild(img);
+      win.appendChild(vp);
+      root.appendChild(win);
+      if (s.caption) root.appendChild(reveal(el("p", "caption", s.caption)));
+    },
+    session: function (s, root) {
+      if (s.heading) root.appendChild(reveal(el("h2", "display heading", s.heading)));
+      var win = reveal(el("div", "terminal"));
+      win.appendChild(el("div", "term-bar", s.label || "session"));
+      var body = el("div", "term-body");
+      (s.lines || []).forEach(function (l, i) {
+        var line = reveal(el("div", "term-line who-" + l.who));
+        line.style.animationDelay = (0.35 + i * 0.55) + "s";
+        line.appendChild(el("span", "tag", l.who === "you" ? "› you" : l.who === "result" ? "✓" : "agent"));
+        line.appendChild(el("span", "text", l.text));
+        body.appendChild(line);
+      });
+      win.appendChild(body);
+      root.appendChild(win);
+    },
+    code: function (s, root) {
+      if (s.heading) root.appendChild(reveal(el("h2", "display heading", s.heading)));
+      var block = reveal(el("div", "codeblock"));
+      block.appendChild(el("pre", null, s.code));
+      root.appendChild(block);
+      if (s.caption) root.appendChild(reveal(el("p", "caption", s.caption)));
+    },
+    closing: function (s, root) {
+      root.appendChild(reveal(el("h2", "display", s.line)));
+      if (s.command) root.appendChild(reveal(el("div", "command", s.command)));
+      if (s.footnote) root.appendChild(reveal(el("div", "footnote", s.footnote)));
+    }
+  };
+
+  slides.forEach(function (s) {
+    var section = el("section", "slide s-" + s.type);
+    revealIndex = 0;
+    (builders[s.type] || function () {})(s, section);
+    deckEl.appendChild(section);
+  });
+
+  var footerEl = document.getElementById("footer");
+  if (meta.footer) footerEl.textContent = meta.footer;
+
+  // -- navigation --
+  var nodes = deckEl.children;
+  var current = -1;
+  var bar = document.getElementById("bar");
+  var counter = document.getElementById("counter");
+
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function show(i) {
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    if (i === current) return;
+    if (current >= 0) nodes[current].classList.remove("active");
+    current = i;
+    // restart entrance animations
+    var node = nodes[current];
+    node.classList.remove("active");
+    void node.offsetWidth;
+    node.classList.add("active");
+    bar.style.width = ((current + 1) / slides.length * 100) + "%";
+    counter.textContent = pad(current + 1) + " / " + pad(slides.length);
+    if (location.hash !== "#" + (current + 1)) history.replaceState(null, "", "#" + (current + 1));
+    scheduleAdvance();
+  }
+  function next() { if (current < slides.length - 1) show(current + 1); else stopAuto(); }
+  function prev() { show(current - 1); }
+
+  // -- autoplay --
+  var playBtn = document.getElementById("play");
+  var auto = false, timer = null;
+  function scheduleAdvance() {
+    if (timer) clearTimeout(timer);
+    if (!auto) return;
+    var secs = slides[current] && slides[current].duration ? slides[current].duration : 6;
+    timer = setTimeout(next, secs * 1000);
+  }
+  function stopAuto() { auto = false; playBtn.classList.remove("playing"); playBtn.innerHTML = "&#9654;&nbsp;Self-play"; if (timer) clearTimeout(timer); }
+  function startAuto() { auto = true; playBtn.classList.add("playing"); playBtn.innerHTML = "&#10073;&#10073;&nbsp;Pause"; scheduleAdvance(); }
+  playBtn.addEventListener("click", function (e) { e.stopPropagation(); auto ? stopAuto() : startAuto(); });
+
+  // -- input --
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); stopAuto(); next(); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); stopAuto(); prev(); }
+    else if (e.key === "Home") show(0);
+    else if (e.key === "End") show(slides.length - 1);
+  });
+  document.addEventListener("click", function (e) {
+    stopAuto();
+    (e.clientX < window.innerWidth * 0.22) ? prev() : next();
+  });
+  var touchX = null;
+  document.addEventListener("touchstart", function (e) { touchX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener("touchend", function (e) {
+    if (touchX == null) return;
+    var dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 40) { stopAuto(); dx < 0 ? next() : prev(); }
+    touchX = null;
+  }, { passive: true });
+
+  // deep link: open demo.html#3 to start on slide 3
+  var fromHash = parseInt(location.hash.slice(1), 10);
+  show(isNaN(fromHash) ? 0 : fromHash - 1);
+  if (meta.autoplay && !reduced) startAuto();
+})();
+</script>
+</body>
+</html>

@@ -55,8 +55,8 @@ One-off skills, invoked manually for a specific task.
 
 | Skill | What it does |
 | --- | --- |
-| `screenshot-page` | Desktop + mobile headless-browser captures of a URL for visual review. |
 | `skill-feedback` | Fold a session correction into the skill that should have prevented it. |
+| `demo` | Sub-60s animated HTML spotlight for a skill or project — sourced claims only, zero dependencies. |
 
 ## License
 

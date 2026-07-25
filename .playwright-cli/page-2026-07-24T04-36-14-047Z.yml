@@ -1,0 +1,59 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - button "💬" [ref=e4] [cursor=pointer]
+      - 'heading "Plan: Add CSV export to the sales report" [level=1] [ref=e5]'
+    - navigation [ref=e6]:
+      - link "Background" [ref=e7] [cursor=pointer]:
+        - /url: "#background"
+      - link "Intuition" [ref=e8] [cursor=pointer]:
+        - /url: "#intuition"
+      - link "Changes" [ref=e9] [cursor=pointer]:
+        - /url: "#changes"
+      - link "Implementation order" [ref=e10] [cursor=pointer]:
+        - /url: "#implementation-order"
+    - generic [ref=e11]:
+      - button "💬" [ref=e12] [cursor=pointer]
+      - heading "Background" [level=2] [ref=e13]
+    - generic [ref=e14]:
+      - button "💬" [ref=e15] [cursor=pointer]
+      - paragraph [ref=e16]: The sales report renders as an HTML table only. Finance re-keys the numbers into spreadsheets by hand every month. This plan adds a CSV download of the same dataset.
+    - generic [ref=e17]:
+      - button "💬" [ref=e18] [cursor=pointer]
+      - heading "Intuition" [level=2] [ref=e19]
+    - generic [ref=e20]:
+      - button "💬" [ref=e21] [cursor=pointer]
+      - paragraph [ref=e22]:
+        - text: The report already builds its rows from
+        - code [ref=e23]: report/query.sql
+        - text: — the export reuses that exact result set, so the CSV can never drift from what the page shows. One new endpoint streams the rows; the page gains a single "Export CSV" button. The export receives the same filter parameters as the page, so a filtered month downloads exactly the rows on screen.
+    - generic [ref=e24]:
+      - button "💬" [ref=e25] [cursor=pointer]
+      - heading "Changes" [level=2] [ref=e26]
+    - generic [ref=e27]:
+      - button "💬" [ref=e28] [cursor=pointer]
+      - list [ref=e29]:
+        - listitem [ref=e30]:
+          - code [ref=e31]: report/routes.py
+          - text: — new
+          - code [ref=e32]: GET /report/export.csv
+          - text: endpoint, streaming rows with the standard library's csv writer.
+        - listitem [ref=e33]:
+          - code [ref=e34]: report/templates/report.html
+          - text: — an "Export CSV" button next to the date filter.
+        - listitem [ref=e35]: No schema changes, no new dependencies.
+    - generic [ref=e36]:
+      - button "💬" [ref=e37] [cursor=pointer]
+      - heading "Implementation order" [level=2] [ref=e38]
+    - generic [ref=e39]:
+      - button "💬" [ref=e40] [cursor=pointer]
+      - list [ref=e41]:
+        - listitem [ref=e42]: Endpoint with streamed rows and a filename header.
+        - listitem [ref=e43]: Button wired to the current filter state.
+        - listitem [ref=e44]: Verify the CSV matches the on-screen table for a filtered month.
+  - generic [ref=e45]:
+    - generic [ref=e46]: no comments yet
+    - button "Send comments to agent" [ref=e47] [cursor=pointer]
+    - button "Approve plan ✓" [ref=e48] [cursor=pointer]
+    - button "Copy as >> lines" [ref=e49] [cursor=pointer]
+    - button "Clear all" [ref=e50] [cursor=pointer]

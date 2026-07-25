@@ -8,104 +8,61 @@ description: >
   enough that jumping straight to code would be a gamble.
 ---
 
-Run these phases in order. Do not skip ahead: no code changes until the plan is approved.
+Run the phases in order. No code changes until the plan is approved. If your environment has
+an enforced read-only or planning mode (e.g. Claude Code's plan mode), enable it for phases
+1–3 and exit it only on approval — enforcement beats intent.
+
+This skill bundles scripts. Their location is the skill's base directory, announced when the
+skill was loaded (e.g. "Base directory for this skill: ..."). Use that path verbatim — never
+guess it, reconstruct it from other installs, or disk-search for the scripts.
 
 ## Phase 1 — Discover
 
-If the problem, outcomes, and non-goals aren't already crisp, run the `discover` skill first
-and produce its brief. If a brief (or equivalent clarity) already exists, restate it in one
-short paragraph and confirm before continuing.
+If the problem, outcomes, and non-goals aren't crisp, run the `discover` skill and produce
+its brief. If that clarity already exists, restate it in one short paragraph and confirm.
 
 ## Phase 2 — Research (read-only)
 
-Investigate the codebase without changing anything. Find the code paths involved, the existing
-patterns to follow, the constraints (schemas, contracts, invariants), and anything that
-contradicts the brief. Prefer reading real code over assuming. Note surprises — they belong in
-the plan's Background section.
+Investigate without changing anything: the code paths involved, existing patterns to follow,
+constraints (schemas, contracts, invariants), and anything contradicting the brief.
 
-## Phase 3 — Plan artifacts
+Preferred: delegate this to a read-only subagent when your environment supports one — give it
+the brief and the specific questions (where does X live, what patterns exist, what
+constraints apply, what contradicts the brief) and have it return a structured report. This
+keeps the main context lean and makes read-only structurally true. Research directly only
+when subagents aren't available.
 
-Produce two files with the same basename:
+- Use dedicated read/search tools, one target per call — never chained shell commands
+  (`a && b && c`); chains force a permission prompt on every variation.
+- Never read secret files (`.env*`, keys). Their existence can be a constraint; their
+  contents never are.
+- Stay scoped to the brief — targeted reading, not a repo sweep.
+- A question that surfaces during research goes to the user NOW, before the plan is written —
+  not into the plan as a guess or an open question you could have resolved.
 
-- `plans/YYYY-MM-DD-<slug>.md` — the **source of truth**. The agent reads, revises, and merges
-  feedback here.
-- `plans/YYYY-MM-DD-<slug>.html` — the **reading/commenting view**, generated from the
-  markdown, for the user to open in a local browser. Regenerate it after every markdown
-  revision; never edit it independently.
+## Phase 3 — Plan
 
-The plan is a *teaching document*, not a task list. Optimize for the reader building intuition
-before seeing mechanics. Markdown structure:
+Write the plan to `~/.agents/plans/<project-name>/YYYY-MM-DD-<slug>.md` (create the folder;
+never inside the project repo). **Read `references/plan-format.md` (next to this skill) now**
+— it defines the required structure: explanation-first sections for the user on top,
+implementation detail for the agent at the bottom.
 
-```
-# Plan: <title>
+## Phase 4 — Review loop
 
-## Background
-What exists today and what problem we're solving. Start broad enough that someone
-unfamiliar with this corner of the codebase can follow; narrow to the specific
-files/behaviors involved. Include what research turned up, especially surprises.
-
-## Intuition
-The core idea in plain language. Explain WHY this approach, using a concrete
-example or toy data walked end-to-end ("a request for X comes in, today it does
-A→B; after this change it does A→C→B because..."). Diagrams welcome. No
-implementation detail yet. If alternatives were considered, one line each on why not.
-
-## Changes
-The how, grouped conceptually (not file-by-file). Each group: what changes, which
-files (path references), and how the pieces connect. Keep it at the level of
-signatures, data shapes, and seams — not full code.
-
-## Risks & open questions
-What could go wrong, what's assumed, what needs the user's call.
-
-## Out of scope
-Explicit non-goals carried from the brief, plus anything deferred.
-```
-
-### The HTML view
-
-Do NOT hand-write the HTML — generate it with the bundled zero-dependency script that lives
-next to this skill, so regeneration costs one command instead of tokens:
-
-```bash
-node <this skill's directory>/build-plan-html.mjs plans/YYYY-MM-DD-<slug>.md
-```
-
-The script renders the markdown into `template.html` (also bundled) and writes the `.html`
-beside the `.md`. What the generated page gives the user:
-
-- Readable single-file page (inline CSS/JS, no dependencies), TOC, works on a phone.
-- A 💬 button on every block to attach comments; comments persist in `localStorage`.
-- "Save comments into .md" writes each comment as `>> ` lines directly into the plan
-  markdown at the right block (File System Access API, Chrome/Edge; user picks the `.md`
-  once). Clipboard fallback copies `>> (section) comment` lines instead.
-- `>>` lines already present in the markdown render as visible pending-comment cards.
-
-If node isn't available, fall back to hand-writing an equivalent page from `template.html`
-(wrap each block in `<div class="blk" data-md-line="<last source line>"
-data-section="<current h2>">`), but prefer the script.
-
-## Phase 4 — Feedback loop
-
-Tell the user both file paths and that they can either open the HTML and comment there
-(exporting when done) or type `>>` lines straight into the markdown — both end up as `>>`
-lines in the markdown, which is the only thing the agent reads.
-
-On each revision round:
-1. Re-read the plan markdown and collect every `>>` line.
-2. Address each one: revise the relevant section, or — if you disagree or need a decision —
-   answer inline directly below the comment.
-3. Remove the `>>` lines you fully addressed and append a short entry to a `## Revision log`
-   section at the bottom (one line per comment: what was asked, what changed).
-4. **Regenerate the HTML from the updated markdown** so the reading view never goes stale.
-5. Report back and repeat until the user says the plan is approved.
-
-Never start building while unaddressed comments exist.
+**Read `references/review-flow.md` now.** Short version: start the bundled review server as a
+background task, point the user at the URL, and wait — the task exiting IS the notification.
+Merge the user's `>>` comments, revise, keep a revision log, restart the server. Repeat until
+`PLAN APPROVED`. Never build with unaddressed comments.
 
 ## Phase 5 — Build
 
-Implement exactly what the approved plan says, applying the `principles` skill defaults
-(minimal change, permanent fix over point fix, use project tools). If implementation reveals
-the plan was wrong somewhere, stop, update the plan file (with a Revision log entry), and flag
-it — don't silently diverge. Finish by verifying the observable outcomes named in the brief
-and reporting results against them.
+On approval:
+1. Exit read-only/plan mode. Ask ONCE whether to switch to auto-accepted edits for this
+   build (approval of the plan usually means yes) instead of prompting per file.
+2. Turn the plan's "Implementation order" section into your task tracker's items so progress
+   is visible.
+3. Implement exactly what the plan says, with `principles` defaults (minimal change,
+   permanent fix over point fix, project tools over ad-hoc scripts).
+4. If implementation proves the plan wrong somewhere, stop, update the plan file (with a
+   revision log entry), and flag it — don't silently diverge.
+5. Verify the observable outcomes named in the brief and report results against them.
