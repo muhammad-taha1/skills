@@ -24,39 +24,42 @@ npx skills add ./ -g -a claude-code
 
 Skills are organized as `skills/<category>/<name>/SKILL.md`.
 
-### domain-knowledge
-Adds knowledge and operating defaults to an agent.
+### craft
+Operating defaults an agent applies silently while it codes.
 
 | Skill | What it does |
 | --- | --- |
-| `principles` | Core engineering operating defaults — minimal change, permanent fix over point fix, complexity in code not prompts. |
-| `simplicity` | Design philosophy — deep modules, abstraction layers, Rule of Three, work → right → fast. |
-| `domain-modeling` | DDD guidance tiered by complexity — strategic always, tactical when earned. |
+| `principles` | How to structure code, shape abstractions, and model a domain — minimal change, deep modules, permanent fix over point fix. Design and DDD depth live in `references/`. |
 | `testing` | TDD at the interface seam — test what a module promises, mock only true boundaries. |
 
 ### workflow
-How I run coding agents day to day.
+Multi-phase processes I run agents through.
 
 | Skill | What it does |
 | --- | --- |
-| `discover` | Requirements interview before any design — produces a brief. |
 | `research-plan-build` | Discover → read-only research → explanation-first plan (markdown source of truth + commentable HTML view) → feedback loop → build. |
-| `agent-repo-optimizer` | Audit a repo's agent docs/skills for drift, duplication, and token cost; tiered improvement plan. |
+| `agent-repo-optimizer` | Audit a repo's agent docs, skills, token cost, and doc/reality drift; survey report plus a tiered improvement plan, nothing changed until approved. |
 
-### productivity
-Non-coding tasks I do regularly.
+### toolkit
+Task-specific skills, invoked for a concrete job.
 
 | Skill | What it does |
 | --- | --- |
+| `demo` | Sub-60s animated HTML spotlight for a skill or project — runs the subject for real, sources every claim from actual output, zero dependencies. |
 | `excel-analysis` | Safe openpyxl workbook analysis and editing — formula-preserving, taxonomy-respecting. |
 
-### executable
-One-off skills, invoked manually for a specific task.
+## Structure
 
-| Skill | What it does |
+A skill is one directory. `SKILL.md` is the only required file; the rest appear when a skill
+needs them.
+
+| Path | Holds |
 | --- | --- |
-| `skill-feedback` | Fold a session correction into the skill that should have prevented it. |
-| `demo` | Sub-60s animated HTML spotlight for a skill or project — sourced claims only, zero dependencies. |
+| `SKILL.md` | The skill — always loaded, kept short |
+| `references/` | Depth the skill reads on demand |
+| `scripts/` | Executables the skill invokes |
+| `assets/` | Templates and static files the scripts consume |
+| `evals/` | `evals.json` plus `fixtures/` for testing the skill |
 
 ## License
 
