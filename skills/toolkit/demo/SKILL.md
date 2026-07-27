@@ -3,10 +3,10 @@ name: demo
 description: >
   Generate a short, polished visual demo — a light-themed, self-contained animated HTML
   slideshow — that spotlights a skill, tool, or technical project in under 60 seconds. Runs
-  the subject for real in a scratch demo environment, captures its actual UI and output, and
-  builds slides only from those artifacts: no invented claims, no filler. Optional Remotion
-  recipe for video output. Trigger on: "make a demo", "demo this skill", "spotlight",
-  "showcase", "pitch deck for", "make a video/slideshow about this project".
+  the subject for real in a scratch environment, captures its actual UI and output, and builds
+  slides only from those artifacts: no invented claims, no filler. Optional Remotion recipe
+  for video output. Use whenever the user wants to demo, showcase, or pitch a project they've
+  built, or wants a slideshow or short video about it.
 ---
 
 Input: the thing to demo — a skill, a repo, a CLI, a library — and optionally where the demo
@@ -49,7 +49,7 @@ actually run — stays separate and disposable; only the finished artifacts move
    spec's **No filler** rules are hard requirements — a slide without an artifact of reality
    gets cut, and nothing restates the title slide.
 5. **Build** into the same folder:
-   `node <this skill's directory>/build-deck.mjs .claude/demos/<subject-slug>/deck.json .claude/demos/<subject-slug>/demo.html`.
+   `node <this skill's directory>/scripts/build-deck.mjs .claude/demos/<subject-slug>/deck.json .claude/demos/<subject-slug>/demo.html`.
    The script validates the deck (structural errors fail; word-budget warnings mean cut
    words), inlines captures as data URIs, and emits one self-contained light-themed HTML
    file — no CDNs, no installs, opens over `file://`.

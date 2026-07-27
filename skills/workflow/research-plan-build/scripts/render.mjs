@@ -113,7 +113,7 @@ export function renderHtml(mdPath) {
     : "";
   const withToc = tocHtml ? content.replace(/(<\/h1><\/div>)/, `$1\n${tocHtml}`) : content;
 
-  const templatePath = join(dirname(fileURLToPath(import.meta.url)), "template.html");
+  const templatePath = join(dirname(fileURLToPath(import.meta.url)), "..", "assets", "template.html");
   return readFileSync(templatePath, "utf8")
     .replace("<!-- PLAN_TITLE -->", esc(title))
     .replace("<!-- PLAN_CONTENT -->", withToc)

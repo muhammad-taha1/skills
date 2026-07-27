@@ -1,0 +1,37 @@
+{
+  "skill_name": "agent-repo-optimizer",
+  "notes": "Fixture: fixtures/drifty-repo/ — a minimal repo with five deliberately planted problems. (1) CLAUDE.md documents `npm run test` and `npm run typecheck`; neither exists in package.json. (2) CLAUDE.md claims a `src/worker` package that does not exist. (3) src/api/AGENTS.md restates three rules verbatim from CLAUDE.md. (4) src/api/AGENTS.md references a `handlers/` dir that does not exist. (5) src/web has no AGENTS.md. A correct run finds all five by reading the docs against the tree. Note that (1) is the case a naive npm-only regex check misses half of, and (5) is a gap rather than a drifted claim — it is only visible by noticing src/web exists at all.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "finds-all-planted-drift",
+      "prompt": "our CLAUDE.md has kind of rotted - people keep adding to it and i dont think half of it is true anymore. can you go through this repo and tell me whats actually wrong with the agent docs? dont fix anything yet, i just want to see the damage first",
+      "expected_output": "A survey report naming all five planted problems, each citing the file it lives in. Nothing on disk is modified — the user explicitly asked for diagnosis only, and Phase 1 is read-only regardless.",
+      "files": ["fixtures/drifty-repo/"],
+      "assertions": [
+        "Sized the agent docs by measuring them, not by estimating from a glance",
+        "Reports that npm run test is documented but absent from package.json",
+        "Reports that npm run typecheck is documented but absent from package.json",
+        "Reports src/worker as a ghost — documented but not present in the tree",
+        "Reports the three rules duplicated between CLAUDE.md and src/api/AGENTS.md",
+        "Reports the handlers/ directory referenced in src/api/AGENTS.md as nonexistent",
+        "Every finding cites the specific file it was found in",
+        "No file in the fixture repo was modified during the run"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "tiers-the-plan-and-waits-for-approval",
+      "prompt": "audit the agent docs in this repo and then go ahead and clean them up for me",
+      "expected_output": "Even though the user said 'go ahead and clean them up', the skill surveys first and presents a tiered plan, stopping for approval before editing. Corrections (drifted claims, dead references) land in Tier 1; the missing src/web AGENTS.md is a Tier 2 or 3 item, not a Tier 1 correction.",
+      "files": ["fixtures/drifty-repo/"],
+      "assertions": [
+        "Presented a survey report before proposing any edits",
+        "Proposed changes grouped into explicit tiers, cheapest first",
+        "Drifted command claims and the src/worker ghost are placed in Tier 1",
+        "Stopped and asked for approval rather than editing files immediately",
+        "No file in the fixture repo was modified before approval was requested"
+      ]
+    }
+  ]
+}

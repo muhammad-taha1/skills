@@ -9,7 +9,7 @@ when the skill was loaded — use it verbatim; never guess or search for the scr
 Start as a BACKGROUND task, then give the user the URL (or open their browser to it):
 
 ```bash
-node <this skill's directory>/serve-plan.mjs <plan.md>   # default port 4747, --port=N to pick
+node <this skill's directory>/scripts/serve-plan.mjs <plan.md>   # default port 4747, --port=N to pick
 ```
 
 - `GET /` renders the markdown fresh on every request — after a revision, the user just
@@ -28,7 +28,7 @@ node <this skill's directory>/serve-plan.mjs <plan.md>   # default port 4747, --
 If node is unavailable or the user wants a portable file:
 
 ```bash
-node <this skill's directory>/build-plan-html.mjs <plan.md>   # writes <plan>.html beside it
+node <this skill's directory>/scripts/build-plan-html.mjs <plan.md>   # writes <plan>.html beside it
 ```
 
 Its save button uses a one-time file picker (File System Access API, Chrome/Edge) to write

@@ -1,0 +1,50 @@
+{
+  "skill_name": "excel-analysis",
+  "notes": "Fixture: fixtures/expenses.xlsx (regenerate with fixtures/make-fixture.py). It holds 6 live formula cells — Jan!D10 =SUM and Summary!B2:B6 =SUMIF — plus a fixed 5-category taxonomy and two uncategorized rows. Every eval below is graded on whether those survive.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "categorize-without-inventing-categories",
+      "prompt": "hey can you look at expenses.xlsx in this folder - theres a couple rows in the Jan sheet where i never filled in the category column. can you sort those out for me? the domain/ssl one and the notary thing",
+      "expected_output": "Both rows get a category drawn from the five already in the Summary sheet (Software, Travel, Meals, Office, Misc). The notary fee has no clean home and should land in Misc with that flagged to the user, not spawn a new 'Legal' category. A backup is taken before the write, and all 6 formula cells are untouched.",
+      "files": ["fixtures/expenses.xlsx"],
+      "assertions": [
+        "Took a timestamped backup before writing to the workbook",
+        "Jan!D10 still contains the formula =SUM(D2:D9), not a hardcoded number",
+        "All five Summary!B2:B6 cells still contain =SUMIF formulas",
+        "No sixth category was added to the Summary sheet",
+        "Both previously-blank Category cells (Jan!C8 and Jan!C9) are now filled",
+        "Every category value used appears in the original five-category taxonomy",
+        "Flagged to the user that the notary fee was a poor fit rather than silently bucketing it"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "read-only-summary-does-not-mutate",
+      "prompt": "whats my biggest spend category in expenses.xlsx? just need the numbers for a quick standup, dont change anything in the file",
+      "expected_output": "A short table in chat naming Travel as the largest category. The workbook is not modified at all — no new Summary rows, no new sheet, no backup needed since nothing is written.",
+      "files": ["fixtures/expenses.xlsx"],
+      "assertions": [
+        "The workbook file is byte-identical after the run",
+        "No new sheet was added to the workbook",
+        "Results were reported as a table in the response, not written into the workbook",
+        "Correctly identifies Travel (656.40) as the largest category"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "append-row-preserves-formula-range",
+      "prompt": "add this to the Jan sheet of expenses.xlsx: 2026-01-28, AWS January invoice, 512.30. it's a software cost. and make sure the total at the bottom picks it up",
+      "expected_output": "The new row is inserted above the TOTAL row (or the TOTAL row is moved down) so the =SUM range expands to include it. The total must remain a formula covering the new row — replacing it with a computed literal is the primary failure this eval catches.",
+      "files": ["fixtures/expenses.xlsx"],
+      "assertions": [
+        "Took a timestamped backup before writing to the workbook",
+        "Jan!D10 (or wherever TOTAL moved to) still contains a =SUM formula, not a literal value",
+        "The SUM range now covers the newly added AWS row",
+        "The new row uses the existing 'Software' category rather than a new one",
+        "All five Summary!B2:B6 SUMIF formulas are still intact",
+        "Ended with an explicit change list naming sheet, cell, and old to new values"
+      ]
+    }
+  ]
+}

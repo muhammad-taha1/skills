@@ -144,7 +144,7 @@ const json = JSON.stringify(deck)
   .replace(new RegExp(LS, "g"), "\\u2028")
   .replace(new RegExp(PS, "g"), "\\u2029");
 
-const html = readFileSync(join(here, "template.html"), "utf8")
+const html = readFileSync(join(here, "..", "assets", "template.html"), "utf8")
   .replace("<!-- DECK_TITLE -->", esc(deck.meta.title))
   .replace("/* DECK_DATA */ null", json);
 

@@ -1,11 +1,11 @@
 ---
 name: excel-analysis
 description: >
-  Safe analysis and editing of Excel workbooks with Python/openpyxl — reading values and
-  formulas, categorizing rows, computing summaries, and making targeted edits without
-  destroying formulas or formatting. Use whenever asked to review, analyze, summarize,
-  categorize, or update a .xlsx/.xlsm spreadsheet. Trigger on: "expense sheet", "spreadsheet",
-  "workbook", "Excel", ".xlsx", "categorize these rows", "update the sheet".
+  Safe analysis and editing of Excel workbooks (.xlsx/.xlsm) with Python/openpyxl — reading
+  values and formulas, categorizing rows, computing summaries, and making targeted edits
+  without destroying formulas or formatting. Use whenever a spreadsheet or workbook needs
+  reviewing, summarizing, categorizing, or updating, since a careless write silently replaces
+  live formulas with stale values.
 ---
 
 Excel workbooks are live documents the user keeps using — treat them as production data, not

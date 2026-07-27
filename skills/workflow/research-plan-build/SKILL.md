@@ -3,9 +3,9 @@ name: research-plan-build
 description: >
   The full feature-development loop: discover requirements, research the codebase read-only,
   write an explanation-first plan file the user annotates with inline comments, revise until
-  approved, then build. Use for any non-trivial feature or change. Trigger on: "let's plan",
-  "new feature", "before we build", "research and plan", "make a plan for", or any task big
-  enough that jumping straight to code would be a gamble.
+  approved, then build. Use for any non-trivial feature or change — whenever the user wants to
+  plan before building, or the task is big enough that going straight to code would be a
+  gamble, even if they didn't ask for a plan.
 ---
 
 Run the phases in order. No code changes until the plan is approved. If your environment has
@@ -18,8 +18,9 @@ guess it, reconstruct it from other installs, or disk-search for the scripts.
 
 ## Phase 1 — Discover
 
-If the problem, outcomes, and non-goals aren't crisp, run the `discover` skill and produce
-its brief. If that clarity already exists, restate it in one short paragraph and confirm.
+If the problem, outcomes, and non-goals aren't crisp, **read `references/discover.md` now** and
+run the interview it defines to produce a brief. If that clarity already exists, restate it in
+one short paragraph and confirm.
 
 ## Phase 2 — Research (read-only)
 
@@ -61,8 +62,8 @@ On approval:
    build (approval of the plan usually means yes) instead of prompting per file.
 2. Turn the plan's "Implementation order" section into your task tracker's items so progress
    is visible.
-3. Implement exactly what the plan says, with `principles` defaults (minimal change,
-   permanent fix over point fix, project tools over ad-hoc scripts).
+3. Implement exactly what the plan says — nothing beyond it. Ideas that surface during the
+   build go in a "Future" note, not into this change.
 4. If implementation proves the plan wrong somewhere, stop, update the plan file (with a
    revision log entry), and flag it — don't silently diverge.
 5. Verify the observable outcomes named in the brief and report results against them.
