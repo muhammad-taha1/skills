@@ -10,13 +10,27 @@
 // POST /approve   prints "REVIEW RESULT: PLAN APPROVED", then exits 0
 
 import { createServer } from "node:http";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { insertComments, renderHtml } from "./render.mjs";
 
 const mdPath = resolve(process.argv[2] || "");
 if (!process.argv[2]) { console.error("usage: node serve-plan.mjs <plan.md> [--port=N]"); process.exit(1); }
 readFileSync(mdPath); // fail fast if missing
+const resultPath = `${mdPath}.review-result.json`;
+rmSync(resultPath, { force: true }); // a new review round must never inherit an old result
+
+function finishReview(result) {
+  const payload = {
+    ...result,
+    planPath: mdPath,
+    completedAt: new Date().toISOString(),
+  };
+  const temporaryPath = `${resultPath}.${process.pid}.tmp`;
+  writeFileSync(temporaryPath, `${JSON.stringify(payload, null, 2)}\n`);
+  renameSync(temporaryPath, resultPath);
+  return payload;
+}
 
 const portArg = process.argv.find((a) => a.startsWith("--port="));
 let port = portArg ? Number(portArg.split("=")[1]) : 4747;
@@ -35,12 +49,16 @@ const srv = createServer((req, res) => {
         const { comments } = JSON.parse(body || "{}");
         if (!Array.isArray(comments) || !comments.length) { res.statusCode = 400; res.end("no comments"); return; }
         writeFileSync(mdPath, insertComments(readFileSync(mdPath, "utf8"), comments));
-        res.end("ok");
-        console.log(`REVIEW RESULT: ${comments.length} comment(s) written into ${mdPath}`);
+        const result = finishReview({ status: "comments", commentCount: comments.length });
+        res.setHeader("content-type", "application/json; charset=utf-8");
+        res.end(JSON.stringify(result));
+        console.log(`REVIEW RESULT: ${comments.length} comment(s) written into ${mdPath} — ${resultPath}`);
         setTimeout(() => process.exit(0), 150);
       } else if (req.method === "POST" && req.url === "/approve") {
-        res.end("ok");
-        console.log(`REVIEW RESULT: PLAN APPROVED — ${mdPath}`);
+        const result = finishReview({ status: "approved" });
+        res.setHeader("content-type", "application/json; charset=utf-8");
+        res.end(JSON.stringify(result));
+        console.log(`REVIEW RESULT: PLAN APPROVED — ${mdPath} — ${resultPath}`);
         setTimeout(() => process.exit(0), 150);
       } else { res.statusCode = 404; res.end("not found"); }
     } catch (e) { res.statusCode = 500; res.end(String(e)); }
@@ -52,6 +70,10 @@ const srv = createServer((req, res) => {
     if (e.code === "EADDRINUSE" && tries > 0) listen(p + 1, tries - 1);
     else { console.error(String(e)); process.exit(2); }
   });
-  srv.listen(p, "127.0.0.1", () =>
-    console.log(`Plan review at http://127.0.0.1:${p}/ — waiting for the user to send comments or approve...`));
+  srv.listen(p, "127.0.0.1", () => {
+    const address = srv.address();
+    const actualPort = typeof address === "object" && address ? address.port : p;
+    console.log(`Plan review at http://127.0.0.1:${actualPort}/ — waiting for the user to send comments or approve...`);
+    console.log(`Durable review result: ${resultPath}`);
+  });
 })(port, 10);

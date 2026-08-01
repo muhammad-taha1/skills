@@ -184,13 +184,13 @@
       if (!comments.length) return toast("No comments to send");
       const r = await fetch("/comments", { method: "POST",
         headers: { "content-type": "application/json" }, body: JSON.stringify({ comments }) });
-      if (r.ok) finish("Sent — the agent is revising. You can close this tab.");
+      if (r.ok) finish("Comments saved. Return to your agent if it does not resume automatically.");
       else toast("Send failed: " + await r.text());
     };
     approveBtn.onclick = async () => {
       if (load().length && !confirm("You have unsent comments — approve anyway?")) return;
       const r = await fetch("/approve", { method: "POST" });
-      if (r.ok) finish("Approved — the agent will start building. You can close this tab.");
+      if (r.ok) finish("Plan approved. Return to your agent to begin implementation.");
       else toast("Approve failed: " + await r.text());
     };
   } else {

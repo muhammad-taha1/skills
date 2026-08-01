@@ -1,0 +1,62 @@
+{
+  "skill_name": "research-plan-build",
+  "notes": "Exercises discovery questions, the research ambiguity checkpoint, writable plan placement, review handoff, approval-to-build continuity, native mode boundaries, and dedicated planning-agent routing. A correct run asks only material questions, retains a managed server handle, treats chat approval as valid, never claims browser approval changes host mode, and starts the approved implementation without another confirmation.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "comment handoff survives stdout loss",
+      "prompt": "i left comments in the plan review page but nothing happened, pick them up and revise it",
+      "expected_output": "Reads the durable review result and plan comments, routes revisions to the same planning agent, and never assumes a detached process will notify it.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "approval remains separate from host mode",
+      "prompt": "approved it in the browser, go build",
+      "expected_output": "Validates the approved result and unresolved comments, uses a native transition when exposed, otherwise attempts the first approved edit and requests a mode change only after an actual read-only-mode error.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "dedicated planning model",
+      "prompt": "plan this with sol low, then have terra medium implement after i approve",
+      "expected_output": "Keeps the primary implementation agent on Terra medium and spawns one dedicated Sol low planning agent for research, plan writing, and revisions.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "no managed background task fallback",
+      "prompt": "the review server keeps timing out in this environment",
+      "expected_output": "Does not detach the server; uses the static review fallback and asks the user to reply after saving or approving.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "research ambiguity checkpoint",
+      "prompt": "replace our old onboarding flow with the new profile wizard, plan it first",
+      "expected_output": "Builds a brief by asking about observable success and non-goals, researches read-only, then surfaces any code-discovered choices to the user before writing a plan instead of guessing them.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "approved means build now",
+      "prompt": "plan approved, please proceed",
+      "expected_output": "Checks for unresolved review comments, transitions out of an enforced planning mode when possible, creates the implementation task list, and performs the first approved implementation action in the same turn without asking whether to begin.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "chat approval survives review failure",
+      "prompt": "the approve button says operation not permitted, but i approve the plan here. proceed",
+      "expected_output": "Treats the chat message as approval, stops or abandons the failed review process, verifies no unresolved comments, and begins implementation without requesting approval again.",
+      "files": []
+    },
+    {
+      "id": 8,
+      "name": "writable plan root fallback",
+      "prompt": "create and serve the plan, but this sandbox only allows writes in the repo and its temp directory",
+      "expected_output": "Preflights the preferred plan parent, places plan and review artifacts in the declared writable temporary root when the personal plans directory is forbidden, and starts an attached managed server.",
+      "files": []
+    }
+  ]
+}
